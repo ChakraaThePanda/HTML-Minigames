@@ -163,20 +163,6 @@
     }
     .btn-primary:hover:not(:disabled) { box-shadow: 0 4px 28px rgba(201,168,76,.5); }
 
-    .btn-right {
-      background: rgba(46,160,67,.18);
-      color: #5ddb80;
-      border: 1.5px solid rgba(46,160,67,.4);
-    }
-    .btn-right:hover { background: rgba(46,160,67,.28); }
-
-    .btn-wrong {
-      background: rgba(220,53,69,.14);
-      color: #f07080;
-      border: 1.5px solid rgba(220,53,69,.35);
-    }
-    .btn-wrong:hover { background: rgba(220,53,69,.26); }
-
     .btn-reveal {
       width: 100%;
       background: var(--surface2);
@@ -197,13 +183,30 @@
       padding: 0 20px;
     }
 
+    /* ========================
+       STICKY HEADER (score + turn + guess result)
+       ======================== */
+    .header-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      width: 100%;
+      background: rgba(10, 11, 14, 0);
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      padding-top: 16px;
+      padding-bottom: 4px;
+      box-shadow: 0 12px 20px -10px rgba(0,0,0,0);
+      transition: background .12s ease-out, backdrop-filter .12s ease-out, box-shadow .12s ease-out;
+    }
+
     /* score bar */
     .score-bar {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0;
-      margin: 32px auto 20px;
+      margin: 0 auto 20px;
       max-width: 500px;
       background: var(--surface);
       border: 1.5px solid var(--border);
@@ -259,52 +262,29 @@
       font-size: .8rem;
       letter-spacing: .12em;
       color: var(--gold);
-      margin-bottom: 16px;
+      margin-bottom: 6px;
       min-height: 1.4em;
       text-transform: uppercase;
     }
 
-    /* ========================
-       CONTROLS — sticky floating bar
-       ======================== */
-    #controls {
+    /* guess result, shown in the sticky header instead of a bottom popup.
+       Fixed height (not min-height) so 1-line vs 2-line text never
+       changes the sticky header's height. */
+    #guessStatus {
       display: flex;
       align-items: center;
-      gap: 20px;
-      padding: 20px 48px;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 100;
-      background: rgba(11, 13, 18, 0.94);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-top: 1.5px solid var(--border);
-      box-shadow: 0 -4px 32px rgba(0,0,0,.6);
-      animation: slideUp .25s ease both;
-    }
-    #controls.hidden { display: none !important; }
-
-    #currentDeck {
+      justify-content: center;
+      text-align: center;
       font-family: 'Cinzel', serif;
-      font-size: 1.25rem;
-      color: var(--gold2);
-      letter-spacing: .05em;
-      flex: 1;
-      min-width: 0;
-      white-space: nowrap;
+      font-size: 1rem;
+      letter-spacing: .06em;
+      line-height: 1.3;
+      height: 2.8em;
       overflow: hidden;
-      text-overflow: ellipsis;
+      padding: 0 20px 10px;
     }
-    #currentDeck::before {
-      content: '▶ ';
-      color: var(--gold);
-      font-size: .75rem;
-    }
-    .control-btns {
-      display: flex;
-      gap: 10px;
-      flex-shrink: 0;
-    }
+    #guessStatus.correct { color: #5ddb80; }
+    #guessStatus.wrong   { color: #f07080; }
 
     /* ========================
        GAME AREA
@@ -313,6 +293,7 @@
       display: flex;
       gap: 28px;
       align-items: flex-start;
+      margin-top: 20px;
       padding-bottom: 80px;
     }
 
@@ -364,6 +345,49 @@
 
     .tile.p1 { outline: 3px solid var(--p1); box-shadow: 0 0 16px var(--p1-glow), 0 2px 8px rgba(0,0,0,.5); }
     .tile.p2 { outline: 3px solid var(--p2); box-shadow: 0 0 16px var(--p2-glow), 0 2px 8px rgba(0,0,0,.5); }
+
+    /* the tile currently awaiting a guess — stays visible without hovering,
+       since the thumbs themselves are hidden until hover */
+    .tile.active-guess {
+      outline: 3px solid var(--gold);
+      animation: guessPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes guessPulse {
+      0%, 100% { box-shadow: 0 0 12px rgba(201,168,76,.45), 0 2px 8px rgba(0,0,0,.5); }
+      50%      { box-shadow: 0 0 24px rgba(201,168,76,.85), 0 2px 8px rgba(0,0,0,.5); }
+    }
+
+    /* ========================
+       GUESS OVERLAY — thumbs up/down on the card itself
+       ======================== */
+    .guess-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      cursor: pointer;
+    }
+    .guess-half {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0);
+      transition: background .15s;
+    }
+    .guess-half.thumb-up   { color: #5ddb80; }
+    .guess-half.thumb-down { color: #f07080; }
+    .guess-half .thumb-icon {
+      display: flex;
+      opacity: 0;
+      transform: scale(.7);
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.85));
+      transition: opacity .15s, transform .15s;
+    }
+    .guess-half .thumb-icon svg { width: 1.7rem; height: 1.7rem; fill: currentColor; display: block; }
+    .guess-half.thumb-up:hover   { background: rgba(46,160,67,.5); }
+    .guess-half.thumb-down:hover { background: rgba(220,53,69,.45); }
+    .guess-half:hover .thumb-icon { opacity: 1; transform: scale(1); }
 
     /* ========================
        REMAINING SIDEBAR
@@ -510,10 +534,8 @@
         max-height: 300px;
       }
 
-      /* Bigger sticky bar on mobile */
-      #controls { gap: 10px; padding: 14px 16px; }
-      #currentDeck { font-size: .9rem; }
       .btn { font-size: .85rem; padding: 11px 18px; letter-spacing: .04em; }
+      .guess-half span { font-size: 1.3rem; }
     }
   </style>
 </head>
@@ -541,28 +563,23 @@
   <!-- Game Screen -->
   <section id="game" class="hidden">
 
-    <div class="score-bar" id="scoreBar">
-      <div class="player-score" id="scoreP1">
-        <div class="pname" id="nameP1">P1</div>
-        <div class="pscore" id="numP1">0</div>
+    <div class="header-bar" id="headerBar">
+      <div class="score-bar" id="scoreBar">
+        <div class="player-score" id="scoreP1">
+          <div class="pname" id="nameP1">P1</div>
+          <div class="pscore" id="numP1">0</div>
+        </div>
+        <div class="score-sep"></div>
+        <div class="vs-badge">VS</div>
+        <div class="score-sep"></div>
+        <div class="player-score" id="scoreP2">
+          <div class="pname" id="nameP2">P2</div>
+          <div class="pscore" id="numP2">0</div>
+        </div>
       </div>
-      <div class="score-sep"></div>
-      <div class="vs-badge">VS</div>
-      <div class="score-sep"></div>
-      <div class="player-score" id="scoreP2">
-        <div class="pname" id="nameP2">P2</div>
-        <div class="pscore" id="numP2">0</div>
-      </div>
-    </div>
 
-    <div id="turnIndicator"></div>
-
-    <div id="controls" class="hidden">
-      <div id="currentDeck"></div>
-      <div class="control-btns">
-        <button class="btn btn-right" id="rightBtn">✔ Correct</button>
-        <button class="btn btn-wrong" id="wrongBtn">✘ Wrong</button>
-      </div>
+      <div id="turnIndicator"></div>
+      <div id="guessStatus"></div>
     </div>
 
     <div class="gameArea">
@@ -683,26 +700,63 @@
     const gameScreen    = document.getElementById("game");
     const boardEl       = document.getElementById("board");
     const turnEl        = document.getElementById("turnIndicator");
-    const controlsEl    = document.getElementById("controls");
-    const rightBtn      = document.getElementById("rightBtn");
-    const wrongBtn      = document.getElementById("wrongBtn");
+    const guessStatusEl = document.getElementById("guessStatus");
+    const headerBarEl   = document.getElementById("headerBar");
+    const remainingEl   = document.getElementById("remaining");
     const remainingListEl = document.getElementById("remainingList");
     const revealAllBtn  = document.getElementById("revealAllBtn");
 
     let players, currentIdx, scores, remaining;
     let activeTile = null;
+    let awaitingNextTurn = false;
     let remainingNames = [];
+
+    function syncRemainingOffset() {
+      if (!headerBarEl || !remainingEl) return;
+      const h = headerBarEl.getBoundingClientRect().height;
+      remainingEl.style.top = (h + 20) + "px";
+      remainingEl.style.maxHeight = `calc(100vh - ${h + 40}px)`;
+    }
+    window.addEventListener("resize", syncRemainingOffset);
+
+    // Sticky header fades from transparent (at the top, showing the page's
+    // background gradient) to a blurred, near-opaque bar as the board scrolls
+    // underneath it, so text stays readable over the card tiles.
+    const HEADER_FADE_DISTANCE = 100;
+    let headerFadeTicking = false;
+    function updateHeaderFade() {
+      headerFadeTicking = false;
+      if (!headerBarEl) return;
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      const alpha = Math.min(1, Math.max(0, y / HEADER_FADE_DISTANCE));
+      headerBarEl.style.background = `rgba(10, 11, 14, ${(alpha * 0.94).toFixed(2)})`;
+      const blur = (alpha * 14).toFixed(1) + "px";
+      headerBarEl.style.backdropFilter = `blur(${blur})`;
+      headerBarEl.style.webkitBackdropFilter = `blur(${blur})`;
+      headerBarEl.style.boxShadow = `0 12px 20px -10px rgba(0,0,0,${(alpha * 0.6).toFixed(2)})`;
+    }
+    window.addEventListener("scroll", () => {
+      if (!headerFadeTicking) {
+        headerFadeTicking = true;
+        requestAnimationFrame(updateHeaderFade);
+      }
+    }, { passive: true });
 
     revealAllBtn.addEventListener("click", () => {
       const ok = confirm("Reveal ALL cards now? This will end the game immediately.");
       if (!ok) return;
+      if (activeTile) {
+        const overlay = activeTile.querySelector(".guess-overlay");
+        if (overlay) overlay.remove();
+        activeTile.classList.remove("active-guess");
+        activeTile = null;
+      }
       boardEl.querySelectorAll(".tile:not(.revealed)").forEach(revealTile);
       remainingNames = [];
       renderRemaining();
       remaining = 0;
-      activeTile = null;
-      controlsEl.classList.add("hidden");
-      document.getElementById("currentDeck").textContent = "";
+      guessStatusEl.textContent = "";
+      guessStatusEl.className = "";
       endGame();
     });
 
@@ -726,6 +780,8 @@
       updateUI();
       setupScreen.classList.add("hidden");
       gameScreen.classList.remove("hidden");
+      syncRemainingOffset();
+      updateHeaderFade();
     });
 
     function buildBoard() {
@@ -770,24 +826,36 @@
       });
     }
 
+    const THUMB_UP_SVG   = '<svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>';
+    const THUMB_DOWN_SVG = '<svg viewBox="0 0 24 24"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L10.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg>';
+
     function handleTileClick(tile) {
-      if (tile.classList.contains("revealed") || activeTile) return;
+      if (tile.classList.contains("revealed") || activeTile || awaitingNextTurn) return;
       revealTile(tile);
-
-      // If this is the last card, reveal it without a guess and end the game
-      if (remaining === 1) {
-        const name = tile.dataset.name;
-        const idx = remainingNames.indexOf(name);
-        if (idx > -1) { remainingNames.splice(idx, 1); renderRemaining(); }
-        remaining--;
-        controlsEl.classList.add("hidden");
-        endGame();
-        return;
-      }
-
       activeTile = tile;
-      document.getElementById("currentDeck").textContent = tile.dataset.name;
-      controlsEl.classList.remove("hidden");
+      tile.classList.add("active-guess");
+      addGuessOverlay(tile);
+      guessStatusEl.textContent = `Guessing: ${tile.dataset.name}`;
+      guessStatusEl.className = "";
+    }
+
+    function addGuessOverlay(tile) {
+      const overlay = document.createElement("div");
+      overlay.className = "guess-overlay";
+
+      const up = document.createElement("div");
+      up.className = "guess-half thumb-up";
+      up.innerHTML = `<span class="thumb-icon">${THUMB_UP_SVG}</span>`;
+      up.addEventListener("click", (e) => { e.stopPropagation(); finalizeGuess(true); });
+
+      const down = document.createElement("div");
+      down.className = "guess-half thumb-down";
+      down.innerHTML = `<span class="thumb-icon">${THUMB_DOWN_SVG}</span>`;
+      down.addEventListener("click", (e) => { e.stopPropagation(); finalizeGuess(false); });
+
+      overlay.appendChild(up);
+      overlay.appendChild(down);
+      tile.appendChild(overlay);
     }
 
     function revealTile(tile) {
@@ -801,30 +869,59 @@
       tile.title = tile.dataset.name;
     }
 
-    rightBtn.addEventListener("click", () => finalizeGuess(true));
-    wrongBtn.addEventListener("click", () => finalizeGuess(false));
-
     function finalizeGuess(correct) {
       if (!activeTile) return;
+      const tile = activeTile;
+      const overlay = tile.querySelector(".guess-overlay");
+      if (overlay) overlay.remove();
+      tile.classList.remove("active-guess");
+
+      const name = tile.dataset.name;
+
       if (correct) {
         scores[currentIdx]++;
-        activeTile.classList.add(players[currentIdx].color);
+        tile.classList.add(players[currentIdx].color);
         document.getElementById(`num${currentIdx === 0 ? 'P1' : 'P2'}`).textContent = scores[currentIdx];
+        guessStatusEl.textContent = `✔ Correct! It was ${name}`;
+        guessStatusEl.className = "correct";
+      } else {
+        guessStatusEl.textContent = `✘ Wrong — it was ${name}`;
+        guessStatusEl.className = "wrong";
       }
-      const name = activeTile.dataset.name;
+
       const idx = remainingNames.indexOf(name);
       if (idx > -1) { remainingNames.splice(idx, 1); renderRemaining(); }
       remaining--;
       activeTile = null;
-      controlsEl.classList.add("hidden");
-      document.getElementById("currentDeck").textContent = "";
-      if (remaining === 0) { endGame(); } else { currentIdx = 1 - currentIdx; updateUI(); }
+      syncRemainingOffset();
+
+      // With only one card left, its identity is already known — end now
+      // instead of waiting for a pointless final click.
+      if (remaining <= 1) {
+        if (remaining === 1) revealFinalTile();
+        awaitingNextTurn = true;
+        setTimeout(endGame, 900);
+      } else {
+        awaitingNextTurn = true;
+        currentIdx = 1 - currentIdx;
+        setTimeout(() => { awaitingNextTurn = false; updateUI(); }, 900);
+      }
+    }
+
+    function revealFinalTile() {
+      const tile = boardEl.querySelector(".tile:not(.revealed)");
+      if (tile) revealTile(tile);
+      remainingNames = [];
+      renderRemaining();
     }
 
     function updateUI() {
       document.getElementById("scoreP1").className = "player-score" + (currentIdx === 0 ? " active-p1" : "");
       document.getElementById("scoreP2").className = "player-score" + (currentIdx === 1 ? " active-p2" : "");
       turnEl.textContent = `⚔ ${players[currentIdx].name}'s Turn`;
+      guessStatusEl.textContent = "";
+      guessStatusEl.className = "";
+      syncRemainingOffset();
     }
 
     function endGame() {
@@ -833,11 +930,14 @@
         ? "⚖ The duel ends in a draw!"
         : `👑 ${s1 > s2 ? players[0].name : players[1].name} claims victory!`;
       turnEl.innerHTML = `<span class="end-banner">${msg}</span>`;
+      guessStatusEl.textContent = "";
+      guessStatusEl.className = "";
       document.getElementById("scoreP1").classList.remove("active-p1");
       document.getElementById("scoreP2").classList.remove("active-p2");
       if (s1 > s2) document.getElementById("scoreP1").classList.add("active-p1");
       if (s2 > s1) document.getElementById("scoreP2").classList.add("active-p2");
       boardEl.querySelectorAll(".tile").forEach(t => t.replaceWith(t.cloneNode(true)));
+      syncRemainingOffset();
     }
   </script>
 </body>
