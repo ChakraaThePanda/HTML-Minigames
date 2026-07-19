@@ -321,6 +321,10 @@
     .tile:hover:not(.revealed) { transform: translateY(-4px) scale(1.04); box-shadow: 0 8px 24px rgba(0,0,0,.6), 0 0 12px rgba(201,168,76,.2); }
     .tile:hover.revealed { transform: scale(1.04); }
 
+    /* while a guess result is being shown, block all board interaction so a
+       click doesn't just play a hover animation and silently fail */
+    .board.locked .tile { pointer-events: none; }
+
     .tile-back {
       position: absolute;
       inset: 0;
@@ -535,7 +539,14 @@
       }
 
       .btn { font-size: .85rem; padding: 11px 18px; letter-spacing: .04em; }
-      .guess-half span { font-size: 1.3rem; }
+
+      /* No hover on touch devices — show the thumbs at rest, with a
+         translucent tint so they read clearly over any card art. */
+      .guess-half { background: rgba(0,0,0,.25); }
+      .guess-half.thumb-up   { background: rgba(46,160,67,.3); }
+      .guess-half.thumb-down { background: rgba(220,53,69,.3); }
+      .guess-half .thumb-icon { opacity: 1; transform: scale(1); }
+      .guess-half:active .thumb-icon { transform: scale(.85); }
     }
   </style>
 </head>
@@ -897,14 +908,18 @@
 
       // With only one card left, its identity is already known — end now
       // instead of waiting for a pointless final click.
+      awaitingNextTurn = true;
+      boardEl.classList.add("locked");
       if (remaining <= 1) {
         if (remaining === 1) revealFinalTile();
-        awaitingNextTurn = true;
         setTimeout(endGame, 900);
       } else {
-        awaitingNextTurn = true;
         currentIdx = 1 - currentIdx;
-        setTimeout(() => { awaitingNextTurn = false; updateUI(); }, 900);
+        setTimeout(() => {
+          awaitingNextTurn = false;
+          boardEl.classList.remove("locked");
+          updateUI();
+        }, 900);
       }
     }
 
