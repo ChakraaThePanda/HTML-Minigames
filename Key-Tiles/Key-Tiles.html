@@ -36,6 +36,10 @@
     user-select:none;
     -webkit-user-select:none;
     touch-action:manipulation;
+    overflow-y:auto;
+  }
+  @media (max-width:700px){
+    html,body{ align-items:flex-start; }
   }
   #app{
     display:flex;
@@ -732,7 +736,12 @@
       + 40       // #app's top+bottom padding
       + 16;      // breathing room
     const availH = window.innerHeight - otherH;
-    let scale = Math.min(1, availW / STAGE_W, availH / STAGE_H);
+    const isMobile = window.innerWidth <= 700;
+    // On mobile, fill the screen's width and let the page scroll if that runs tall,
+    // rather than shrinking the board to whatever fits without scrolling.
+    let scale = isMobile
+      ? Math.min(1, availW / STAGE_W)
+      : Math.min(1, availW / STAGE_W, availH / STAGE_H);
     scale = Math.max(0.45, scale); // don't shrink into unusable territory
     stage.style.transform = 'scale(' + scale + ')';
     stageWrap.style.width = Math.round(STAGE_W * scale) + 'px';
