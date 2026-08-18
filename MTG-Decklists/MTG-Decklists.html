@@ -39,6 +39,8 @@
       padding: 0 0 80px;
       position: relative;
       overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
       background-image:
         radial-gradient(ellipse at 50% 0%, rgba(201,168,76,.07) 0%, transparent 60%),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='.8' fill='%23c9a84c' opacity='.08'/%3E%3C/svg%3E");
@@ -544,7 +546,11 @@
     .guess-half.thumb-up:hover   { background: rgba(46,160,67,.5); }
     .guess-half.thumb-down:hover { background: rgba(220,53,69,.45); }
     .guess-half:hover .thumb-icon { opacity: 1; transform: scale(1.15); }
-    .guess-half:active .thumb-icon { transform: scale(.9); }
+    .guess-half:active .thumb-icon { opacity: 1; transform: scale(.9); }
+    /* touch devices have no :hover, so keep the icons discoverable without one */
+    @media (hover: none) {
+      .guess-half .thumb-icon { opacity: .55; }
+    }
 
     /* ========================
        REMAINING SIDEBAR
