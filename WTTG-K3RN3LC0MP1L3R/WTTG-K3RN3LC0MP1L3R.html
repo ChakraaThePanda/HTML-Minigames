@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>K3RN3L C0MP1L3R</title>
 <style>
   :root{
@@ -11,13 +12,14 @@
     --bg: #030805;
     --panel: #071a0c;
   }
-  *{ box-sizing: border-box; }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html,body{
     margin:0; padding:0; height:100%;
     background: radial-gradient(ellipse at center, #051006 0%, #000000 100%);
     color: var(--green);
     font-family: 'Consolas', 'Courier New', monospace;
     overflow: hidden;
+    touch-action: manipulation;
   }
   body{
     display:flex; align-items:center; justify-content:center;
@@ -87,7 +89,7 @@
     border: 1px solid var(--green-dim);
     color: var(--green);
     font-size: 0.85rem;
-    padding: 2px 9px;
+    padding: 8px 12px;
     border-radius: 4px;
     cursor: pointer;
     line-height: 1.5;
@@ -183,7 +185,14 @@
 
   #typedInput{
     position:absolute; opacity:0; pointer-events:none;
+    font-size:16px;
   }
+
+  .abortBtn{
+    background:none; border:none; color:inherit; font-family:inherit;
+    font-size:0.7rem; letter-spacing:1px; opacity:0.55; cursor:pointer; padding:6px;
+  }
+  .abortBtn:active{ opacity:0.9; }
 
   .resultTitle{ font-size:1.6rem; letter-spacing:3px; text-shadow: 0 0 14px currentColor; }
   .resultTitle.win{ color: var(--green); }
@@ -234,7 +243,7 @@
     <div class="codePanel" id="codePanel">
       <div class="codeLine" id="codeLine"></div>
     </div>
-    <div class="hint">ESC to abort compilation</div>
+    <button type="button" class="hint abortBtn" id="abortBtn">✕ Abort (or ESC)</button>
   </div>
 
   <!-- END SCREEN -->
@@ -388,6 +397,7 @@
   const endScreen = document.getElementById('endScreen');
   const startBtn = document.getElementById('startBtn');
   const retryBtn = document.getElementById('retryBtn');
+  const abortBtn = document.getElementById('abortBtn');
   const codeLineEl = document.getElementById('codeLine');
   const progressLabel = document.getElementById('progressLabel');
   const mistakeCountEl = document.getElementById('mistakeCount');
@@ -616,6 +626,10 @@
 
   startBtn.addEventListener('click', startGame);
   retryBtn.addEventListener('click', startGame);
+  abortBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    abortGame();
+  });
 
 })();
 </script>
