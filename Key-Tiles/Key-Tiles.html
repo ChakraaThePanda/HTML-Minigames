@@ -36,10 +36,13 @@
     user-select:none;
     -webkit-user-select:none;
     touch-action:manipulation;
+    overflow-x:hidden;
     overflow-y:auto;
   }
   @media (max-width:700px){
     html,body{ align-items:flex-start; }
+    #app{ padding:14px 6px; }
+    #controls{ width:min(calc(100vw - 12px), 420px); }
   }
   #app{
     display:flex;
@@ -284,7 +287,7 @@
     <div id="stage">
       <div id="overlay">
         <h2 id="overlaytitle">Key Tiles</h2>
-        <p id="overlaytext">Tiles stream down every lane, but only one is active at a time — the one outlined in white. Press its lane's key (or tap that lane on mobile) anywhere along the lane, no need to wait for the bottom. Clearing tiles out of order, pressing the wrong key, or letting the active tile reach the bottom all end the run. Speed climbs continuously — your score is how many tiles per second you were clearing when it ended.</p>
+        <p id="overlaytext">Only the white-outlined tile is live.<br>Press its key (or tap its lane).<br>Wrong key ends the run.<br>Wrong order ends the run.<br>Reaching the bottom ends the run.<br>Score = tiles/sec when it ends.</p>
         <div id="finalscore" style="display:none"></div>
         <div class="btnrow">
           <button id="btnStart">Start</button>
@@ -567,7 +570,7 @@
     updateColToggleUI();
     overlay.classList.remove('hidden');
     overlayTitle.textContent = 'Key Tiles';
-    overlayText.textContent = 'Tiles stream down every lane, but only one is active at a time — the one outlined in white. Press its lane\'s key (or tap that lane on mobile) anywhere along the lane, no need to wait for the bottom. Clearing tiles out of order, pressing the wrong key, or letting the active tile reach the bottom all end the run. Speed climbs continuously — your score is how many tiles per second you were clearing when it ended.';
+    overlayText.innerHTML = 'Only the white-outlined tile is live.<br>Press its key (or tap its lane).<br>Wrong key ends the run.<br>Wrong order ends the run.<br>Reaching the bottom ends the run.<br>Score = tiles/sec when it ends.';
     finalScoreEl.style.display = 'none';
     speedOut.textContent = '0.00';
   }
@@ -613,7 +616,7 @@
       bestEl.textContent = best.toFixed(2);
     }
     overlayTitle.textContent = 'Game Over';
-    overlayText.textContent = 'Tiles stream down every lane, but only one is active at a time — the one outlined in white. Press its lane\'s key (or tap that lane on mobile) anywhere along the lane, no need to wait for the bottom. Clearing tiles out of order, pressing the wrong key, or letting the active tile reach the bottom all end the run. Speed climbs continuously — your score is how many tiles per second you were clearing when it ended.';
+    overlayText.innerHTML = 'Only the white-outlined tile is live.<br>Press its key (or tap its lane).<br>Wrong key ends the run.<br>Wrong order ends the run.<br>Reaching the bottom ends the run.<br>Score = tiles/sec when it ends.';
     finalScoreEl.style.display = 'block';
     finalScoreEl.innerHTML = (reason ? reason + '<br>' : '') + 'Score: <b>' + finalScore.toFixed(2) + '</b> &nbsp;|&nbsp; Best: <b>' + best.toFixed(2) + '</b>';
     overlay.classList.remove('hidden');
@@ -729,14 +732,14 @@
   });
 
   function fitStage(){
-    const sideMargin = 16;
+    const isMobile = window.innerWidth <= 700;
+    const sideMargin = isMobile ? 6 : 16; // keep in sync with #app/#controls mobile CSS
     const availW = window.innerWidth - sideMargin * 2;
     const otherH = h1El.offsetHeight + hudEl.offsetHeight + controlsEl.offsetHeight
       + 14 * 3   // #app's flex gap, 3 gaps between 4 children (h1, hud, stageWrap, controls)
       + 40       // #app's top+bottom padding
       + 16;      // breathing room
     const availH = window.innerHeight - otherH;
-    const isMobile = window.innerWidth <= 700;
     // On mobile, fill the screen's width and let the page scroll if that runs tall,
     // rather than shrinking the board to whatever fits without scrolling.
     let scale = isMobile
