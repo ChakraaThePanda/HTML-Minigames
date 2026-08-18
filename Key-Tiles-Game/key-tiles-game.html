@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Key Tiles</title>
+<style>
+  :root{
+    --bg:#0d0f14;
+    --panel:#161923;
+    --line:#2a2f3d;
+    --text:#e8eaf0;
+    --muted:#8890a4;
+    --accent:#5ad1e6;
+    --danger:#ff5470;
+    --c-blue:#5ad1e6;
+    --c-blue-dark:#3aa9c2;
+    --c-blue-tint:#9fe6f2;
+    --c-yellow:#ffd166;
+    --c-yellow-dark:#c99a35;
+    --c-yellow-tint:#ffe29a;
+    --c-red:#ff5470;
+    --c-red-dark:#c23652;
+    --c-red-tint:#ff8aa0;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    height:100%;
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  #app{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    padding:20px;
+  }
+  h1{
+    margin:0;
+    font-size:28px;
+    letter-spacing:2px;
+  }
+  #hud{
+    display:flex;
+    gap:28px;
+    font-size:15px;
+    color:var(--muted);
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  #hud span b{
+    color:var(--text);
+    font-size:20px;
+    font-variant-numeric:tabular-nums;
+  }
+  #stageWrap{
+    position:relative;
+  }
+  #stage{
+    position:absolute;
+    top:0;
+    left:0;
+    width:420px;
+    height:620px;
+    background:var(--panel);
+    border:2px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    touch-action:none;
+    cursor:pointer;
+    transform-origin:top left;
+  }
+  .colshade{
+    position:absolute;
+    top:0;
+    bottom:0;
+    opacity:.10;
+    pointer-events:none;
+  }
+  .colshade.color-blue{ background:var(--c-blue); }
+  .colshade.color-yellow{ background:var(--c-yellow); }
+  .colshade.color-red{ background:var(--c-red); }
+  .col-line{
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:1px;
+    background:var(--line);
+  }
+  .keylabel{
+    position:absolute;
+    bottom:0;
+    height:60px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    font-weight:700;
+    border-top:1px solid var(--line);
+    transition:background .08s, color .08s;
+  }
+  .keylabel.color-blue{ color:var(--c-blue-tint); }
+  .keylabel.color-yellow{ color:var(--c-yellow-tint); }
+  .keylabel.color-red{ color:var(--c-red-tint); }
+  .keylabel.color-blue.flash{ background:var(--c-blue); color:#062; }
+  .keylabel.color-yellow.flash{ background:var(--c-yellow); color:#3a2a06; }
+  .keylabel.color-red.flash{ background:var(--c-red); color:#3a0410; }
+  .tile{
+    position:absolute;
+    height:70px;
+    margin-left:8px;
+    border-radius:8px;
+  }
+  .tile.color-blue{
+    background:linear-gradient(180deg,var(--c-blue),var(--c-blue-dark));
+    box-shadow:0 0 12px rgba(90,209,230,.5);
+  }
+  .tile.color-yellow{
+    background:linear-gradient(180deg,var(--c-yellow),var(--c-yellow-dark));
+    box-shadow:0 0 12px rgba(255,209,102,.5);
+  }
+  .tile.color-red{
+    background:linear-gradient(180deg,var(--c-red),var(--c-red-dark));
+    box-shadow:0 0 12px rgba(255,84,112,.5);
+  }
+  .tile.next{
+    outline:2px solid rgba(255,255,255,.6);
+    outline-offset:-2px;
+  }
+  #overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(10,12,18,.92);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    text-align:center;
+    padding:20px;
+  }
+  #overlay.hidden{display:none;}
+  #overlay h2{
+    margin:0;
+    font-size:26px;
+  }
+  #overlay p{
+    margin:0;
+    color:var(--muted);
+    font-size:14px;
+    max-width:320px;
+    line-height:1.5;
+  }
+  .btnrow{
+    display:flex;
+    gap:12px;
+  }
+  button{
+    font-family:inherit;
+    font-size:16px;
+    font-weight:600;
+    padding:12px 22px;
+    border-radius:8px;
+    border:2px solid var(--line);
+    background:var(--panel);
+    color:var(--text);
+    cursor:pointer;
+    transition:border-color .15s, transform .1s;
+  }
+  button:hover{
+    border-color:var(--accent);
+  }
+  button:active{
+    transform:scale(0.96);
+  }
+  button:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+  #finalscore b{
+    color:var(--accent);
+    font-size:22px;
+  }
+  .hint{
+    color:var(--muted);
+    font-size:12px;
+    opacity:.75;
+  }
+  #controls{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    width:min(94vw, 420px);
+  }
+  .segrow{
+    display:flex;
+    gap:8px;
+  }
+  .segbtn{
+    padding:8px 16px;
+    font-size:13px;
+  }
+  .segbtn.active{
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+  .keybindrow{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:center;
+  }
+  .keychip{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .keychip-label{
+    font-size:10px;
+    letter-spacing:1px;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  .keychip button{
+    padding:8px 14px;
+    font-size:15px;
+    min-width:40px;
+  }
+  .keychip button.color-blue{ border-color:var(--c-blue); color:var(--c-blue-tint); }
+  .keychip button.color-yellow{ border-color:var(--c-yellow); color:var(--c-yellow-tint); }
+  .keychip button.color-red{ border-color:var(--c-red); color:var(--c-red-tint); }
+  .keychip button.listening{
+    color:var(--text);
+    border-color:var(--text);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .keychip button.listening{ animation:pulse .8s infinite; }
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .keychip button.chiperror{
+    border-color:var(--danger);
+    color:var(--danger);
+  }
+  .togglerow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .togglerow input[type="checkbox"]{
+    width:16px;
+    height:16px;
+    accent-color:var(--accent);
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>KEY TILES</h1>
+  <div id="hud">
+    <span>TILES/SEC <b id="speedout">0.00</b></span>
+    <span>BEST <b id="best">0.00</b></span>
+  </div>
+  <div id="stageWrap">
+    <div id="stage">
+      <div id="overlay">
+        <h2 id="overlaytitle">Key Tiles</h2>
+        <p id="overlaytext">Tiles stream down every lane, but only one is active at a time — the one outlined in white. Press its lane's key (or tap that lane on mobile) anywhere along the lane, no need to wait for the bottom. Clearing tiles out of order, pressing the wrong key, or letting the active tile reach the bottom all end the run. Speed climbs continuously — your score is how many tiles per second you were clearing when it ended.</p>
+        <div id="finalscore" style="display:none"></div>
+        <div class="btnrow">
+          <button id="btnStart">Start</button>
+        </div>
+        <p class="hint">or press SPACE to (re)start</p>
+      </div>
+    </div>
+  </div>
+  <div id="controls">
+    <div class="segrow" id="colToggle">
+      <button class="segbtn" data-cols="3">3 Columns</button>
+      <button class="segbtn" data-cols="4">4 Columns</button>
+    </div>
+    <label class="togglerow"><input type="checkbox" id="noRepeatToggle"> No repeating keys</label>
+    <div class="keybindrow" id="keybindRow"></div>
+    <p class="hint">click a key below, then press its new key (Esc to cancel)</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const stageWrap = document.getElementById('stageWrap');
+  const stage = document.getElementById('stage');
+  const appEl = document.getElementById('app');
+  const h1El = appEl.querySelector('h1');
+  const hudEl = document.getElementById('hud');
+  const controlsEl = document.getElementById('controls');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlaytitle');
+  const overlayText = document.getElementById('overlaytext');
+  const finalScoreEl = document.getElementById('finalscore');
+  const bestEl = document.getElementById('best');
+  const speedOut = document.getElementById('speedout');
+  const btnStart = document.getElementById('btnStart');
+  const colToggleEl = document.getElementById('colToggle');
+  const keybindRowEl = document.getElementById('keybindRow');
+  const noRepeatToggle = document.getElementById('noRepeatToggle');
+
+  const STAGE_W = 420, STAGE_H = 620;
+  const TILE_H = 70;
+  const MISS_Y = STAGE_H - 60;          // top of the keylabel bar; passing this = miss
+  const MIN_GAP = TILE_H + 40;          // min vertical gap before reusing a lane
+
+  const BASE_SPEED = 380;         // px/sec starting speed
+  const ACCEL_PER_SEC = 14;       // px/sec, added to speed every second survived
+  const SPAWN_DENSITY = 2.3;      // avg tiles in flight per lane-cycle
+  const MIN_SPAWN_INTERVAL = 220; // ms floor so lanes don't jam up
+
+  function defaultKeys(n){ return n === 3 ? ['d','f','j'] : ['d','f','j','k']; }
+  function colorsForCols(n){ return n === 3 ? ['blue','yellow','red'] : ['blue','blue','red','red']; }
+  function safeParseKeys(raw, n){
+    try{
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr) && arr.length === n && arr.every(k => typeof k === 'string')) return arr;
+    }catch(e){}
+    return null;
+  }
+
+  let numCols = [3,4].includes(Number(localStorage.getItem('keytiles_numcols'))) ? Number(localStorage.getItem('keytiles_numcols')) : 4;
+  const keyMaps = {
+    3: safeParseKeys(localStorage.getItem('keytiles_keys3'), 3) || defaultKeys(3),
+    4: safeParseKeys(localStorage.getItem('keytiles_keys4'), 4) || defaultKeys(4)
+  };
+  let colKeys = keyMaps[numCols];
+  let colColors = colorsForCols(numCols);
+  let COL_W = STAGE_W / numCols;
+  let KEY_TO_COL = {};
+  let keyLabelEls = [];
+  let chipButtons = [];
+  let listeningCol = null;
+  let noRepeat = localStorage.getItem('keytiles_norepeat') === '1';
+  let lastSpawnedCol = -1;
+
+  let best = 0;
+  let speed = BASE_SPEED;
+  let running = false;
+  let tiles = [];         // {col, y, el}
+  let lastTime = null;
+  let spawnAcc = 0;
+  let keysDown = new Set();
+  let rafId = null;
+
+  const COL_FREQS = [261.63, 329.63, 392.00, 523.25]; // C4 E4 G4 C5
+  let audioCtx = null;
+
+  function ensureAudio(){
+    if(!audioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function beep(freq, dur, type, vol){
+    ensureAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    const now = audioCtx.currentTime;
+    gain.gain.setValueAtTime(vol || 0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + dur);
+  }
+
+  function playHitSound(col){
+    beep(COL_FREQS[col % COL_FREQS.length], 0.12, 'triangle', 0.25);
+  }
+
+  function playGameOverSound(){
+    beep(220, 0.18, 'sawtooth', 0.25);
+    setTimeout(() => beep(140, 0.3, 'sawtooth', 0.25), 140);
+  }
+
+  function colX(col){ return col * COL_W; }
+
+  function colMinY(col){
+    let m = Infinity;
+    for(const t of tiles){ if(t.col === col && t.y < m) m = t.y; }
+    return m;
+  }
+
+  function spawnTile(){
+    const eligible = [];
+    for(let c = 0; c < numCols; c++){ if(colMinY(c) >= MIN_GAP) eligible.push(c); }
+    if(eligible.length === 0) return false;
+    let pool = eligible;
+    if(noRepeat && eligible.length > 1){
+      const filtered = eligible.filter(c => c !== lastSpawnedCol);
+      if(filtered.length > 0) pool = filtered;
+    }
+    const col = pool[Math.floor(Math.random() * pool.length)];
+    lastSpawnedCol = col;
+    const el = document.createElement('div');
+    el.className = 'tile color-' + colColors[col];
+    el.style.left = colX(col) + 'px';
+    el.style.width = (COL_W - 16) + 'px';
+    el.style.top = '-' + TILE_H + 'px';
+    stage.appendChild(el);
+    tiles.push({ col, y: -TILE_H, el });
+    return true;
+  }
+
+  function removeTile(t){
+    t.el.remove();
+    tiles = tiles.filter(x => x !== t);
+  }
+
+  function clearAllTiles(){
+    tiles.forEach(t => t.el.remove());
+    tiles = [];
+  }
+
+  function flashKey(col, cls){
+    const lbl = keyLabelEls[col];
+    lbl.classList.add(cls);
+    setTimeout(() => lbl.classList.remove(cls), 120);
+  }
+
+  // How many tiles you actually need to click per second, i.e. the current spawn rate.
+  function tilesPerSec(){ return 1000 / currentSpawnInterval(); }
+
+  function updateHud(){
+    speedOut.textContent = tilesPerSec().toFixed(2);
+  }
+
+  function currentSpawnInterval(){
+    const crossMs = (STAGE_H / speed) * 1000;
+    return Math.max(MIN_SPAWN_INTERVAL, crossMs / SPAWN_DENSITY);
+  }
+
+  function bestKey(){ return 'keytiles_best_tps_' + numCols; }
+
+  function loadBest(){
+    best = Number(localStorage.getItem(bestKey()) || 0);
+    bestEl.textContent = best.toFixed(2);
+  }
+
+  function rebuildKeyMap(){
+    KEY_TO_COL = {};
+    colKeys.forEach((k, i) => { KEY_TO_COL[k] = i; });
+  }
+
+  function persistKeys(){
+    localStorage.setItem(numCols === 3 ? 'keytiles_keys3' : 'keytiles_keys4', JSON.stringify(colKeys));
+  }
+
+  function buildBoard(){
+    COL_W = STAGE_W / numCols;
+    stage.querySelectorAll('.gen').forEach(el => el.remove());
+    const frag = document.createDocumentFragment();
+
+    for(let i = 0; i < numCols; i++){
+      const shade = document.createElement('div');
+      shade.className = 'colshade gen color-' + colColors[i];
+      shade.style.left = colX(i) + 'px';
+      shade.style.width = COL_W + 'px';
+      frag.appendChild(shade);
+    }
+    for(let i = 1; i < numCols; i++){
+      const line = document.createElement('div');
+      line.className = 'col-line gen';
+      line.style.left = colX(i) + 'px';
+      frag.appendChild(line);
+    }
+    keyLabelEls = [];
+    for(let i = 0; i < numCols; i++){
+      const lbl = document.createElement('div');
+      lbl.className = 'keylabel gen color-' + colColors[i];
+      lbl.style.left = colX(i) + 'px';
+      lbl.style.width = COL_W + 'px';
+      lbl.textContent = colKeys[i].toUpperCase();
+      frag.appendChild(lbl);
+      keyLabelEls.push(lbl);
+    }
+    stage.insertBefore(frag, overlay);
+  }
+
+  function buildKeybindRow(){
+    keybindRowEl.innerHTML = '';
+    chipButtons = [];
+    for(let i = 0; i < numCols; i++){
+      const wrap = document.createElement('div');
+      wrap.className = 'keychip';
+      const label = document.createElement('span');
+      label.className = 'keychip-label';
+      label.textContent = 'lane ' + (i + 1);
+      const btn = document.createElement('button');
+      btn.className = 'color-' + colColors[i];
+      btn.textContent = colKeys[i].toUpperCase();
+      btn.addEventListener('click', () => startListening(i));
+      wrap.appendChild(label);
+      wrap.appendChild(btn);
+      keybindRowEl.appendChild(wrap);
+      chipButtons.push(btn);
+    }
+  }
+
+  function updateColToggleUI(){
+    colToggleEl.querySelectorAll('button').forEach(btn => {
+      btn.classList.toggle('active', Number(btn.dataset.cols) === numCols);
+    });
+  }
+
+  function startListening(col){
+    if(listeningCol !== null) cancelListening();
+    listeningCol = col;
+    chipButtons[col].textContent = '…';
+    chipButtons[col].classList.add('listening');
+  }
+
+  function cancelListening(){
+    if(listeningCol === null) return;
+    chipButtons[listeningCol].textContent = colKeys[listeningCol].toUpperCase();
+    chipButtons[listeningCol].classList.remove('listening');
+    listeningCol = null;
+  }
+
+  function flashChipError(col){
+    const btn = chipButtons[col];
+    btn.classList.add('chiperror');
+    setTimeout(() => btn.classList.remove('chiperror'), 300);
+  }
+
+  function assignKey(col, k){
+    colKeys[col] = k;
+    persistKeys();
+    rebuildKeyMap();
+    chipButtons[col].classList.remove('listening');
+    chipButtons[col].textContent = k.toUpperCase();
+    if(keyLabelEls[col]) keyLabelEls[col].textContent = k.toUpperCase();
+    listeningCol = null;
+  }
+
+  function resetToMenu(){
+    running = false;
+    clearAllTiles();
+    updateColToggleUI();
+    overlay.classList.remove('hidden');
+    overlayTitle.textContent = 'Key Tiles';
+    overlayText.textContent = 'Tiles stream down every lane, but only one is active at a time — the one outlined in white. Press its lane\'s key (or tap that lane on mobile) anywhere along the lane, no need to wait for the bottom. Clearing tiles out of order, pressing the wrong key, or letting the active tile reach the bottom all end the run. Speed climbs continuously — your score is how many tiles per second you were clearing when it ended.';
+    finalScoreEl.style.display = 'none';
+    speedOut.textContent = '0.00';
+  }
+
+  function switchColumns(n){
+    if(n === numCols) return;
+    cancelListening();
+    if(rafId) cancelAnimationFrame(rafId);
+    numCols = n;
+    localStorage.setItem('keytiles_numcols', String(n));
+    colKeys = keyMaps[n];
+    colColors = colorsForCols(n);
+    rebuildKeyMap();
+    loadBest();
+    buildBoard();
+    buildKeybindRow();
+    resetToMenu();
+    fitStage();
+  }
+
+  function startGame(){
+    speed = BASE_SPEED;
+    running = true;
+    overlay.classList.add('hidden');
+    finalScoreEl.style.display = 'none';
+    clearAllTiles();
+    lastSpawnedCol = -1;
+    updateHud();
+    lastTime = null;
+    spawnAcc = currentSpawnInterval(); // spawn the first tile immediately
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function endGame(reason){
+    running = false;
+    clearAllTiles();
+    playGameOverSound();
+    const finalScore = tilesPerSec();
+    if(finalScore > best){
+      best = finalScore;
+      localStorage.setItem(bestKey(), String(best));
+      bestEl.textContent = best.toFixed(2);
+    }
+    overlayTitle.textContent = 'Game Over';
+    overlayText.textContent = 'Tiles stream down every lane, but only one is active at a time — the one outlined in white. Press its lane\'s key (or tap that lane on mobile) anywhere along the lane, no need to wait for the bottom. Clearing tiles out of order, pressing the wrong key, or letting the active tile reach the bottom all end the run. Speed climbs continuously — your score is how many tiles per second you were clearing when it ended.';
+    finalScoreEl.style.display = 'block';
+    finalScoreEl.innerHTML = (reason ? reason + '<br>' : '') + 'Score: <b>' + finalScore.toFixed(2) + '</b> &nbsp;|&nbsp; Best: <b>' + best.toFixed(2) + '</b>';
+    overlay.classList.remove('hidden');
+  }
+
+  function hitSuccess(t){
+    playHitSound(t.col);
+    removeTile(t);
+  }
+
+  function loop(ts){
+    if(!running) return;
+    if(lastTime === null) lastTime = ts;
+    const dt = (ts - lastTime) / 1000;
+    lastTime = ts;
+
+    speed += ACCEL_PER_SEC * dt;
+    updateHud();
+
+    spawnAcc += dt * 1000;
+    if(spawnAcc >= currentSpawnInterval()){
+      if(spawnTile()) spawnAcc = 0;
+    }
+
+    for(const t of tiles){
+      t.y += speed * dt;
+      t.el.style.top = t.y + 'px';
+      if(t.y > MISS_Y){
+        endGame('Missed a tile in lane ' + keyLabelEls[t.col].textContent + '.');
+        return;
+      }
+    }
+    updateNextHighlights();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function nextTile(){
+    // across the whole board, the furthest-advanced (largest y) tile is the one due next
+    let frontmost = null;
+    for(const t of tiles){ if(frontmost === null || t.y > frontmost.y) frontmost = t; }
+    return frontmost;
+  }
+
+  function updateNextHighlights(){
+    const front = nextTile();
+    for(const t of tiles){ t.el.classList.toggle('next', t === front); }
+  }
+
+  function handlePress(col){
+    if(!running){ return; }
+    const target = nextTile();
+    if(target && target.col === col){
+      flashKey(col, 'flash');
+      hitSuccess(target);
+    } else {
+      flashKey(col, 'flash');
+      endGame(target
+        ? 'Out of order — the next tile was in lane ' + keyLabelEls[target.col].textContent + '.'
+        : 'No tile waiting in lane ' + keyLabelEls[col].textContent + '.');
+    }
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if(listeningCol !== null){
+      e.preventDefault();
+      if(e.repeat) return;
+      if(e.key === 'Escape'){ cancelListening(); return; }
+      const k = e.key.toLowerCase();
+      if(k === ' ' || k.length !== 1){ return; } // ignore, keep listening
+      if(colKeys.some((key, idx) => key === k && idx !== listeningCol)){ flashChipError(listeningCol); return; }
+      assignKey(listeningCol, k);
+      return;
+    }
+    if(e.code === 'Space'){
+      e.preventDefault();
+      if(keysDown.has(' ')) return; // ignore key-repeat
+      keysDown.add(' ');
+      if(!running) startGame();
+      return;
+    }
+    const k = e.key.toLowerCase();
+    if(!(k in KEY_TO_COL)) return;
+    if(keysDown.has(k)) return; // ignore key-repeat
+    keysDown.add(k);
+    e.preventDefault();
+    handlePress(KEY_TO_COL[k]);
+  });
+
+  window.addEventListener('keyup', (e) => {
+    if(e.code === 'Space'){ keysDown.delete(' '); return; }
+    const k = e.key.toLowerCase();
+    keysDown.delete(k);
+  });
+
+  stage.addEventListener('pointerdown', (e) => {
+    if(!running) return;
+    e.preventDefault();
+    const rect = stage.getBoundingClientRect();
+    // use a fraction of the rendered (possibly scaled) width so this stays correct at any zoom level
+    const frac = (e.clientX - rect.left) / rect.width;
+    const col = Math.min(numCols - 1, Math.max(0, Math.floor(frac * numCols)));
+    handlePress(col);
+  });
+
+  btnStart.addEventListener('click', () => startGame());
+  colToggleEl.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => switchColumns(Number(btn.dataset.cols)));
+  });
+  noRepeatToggle.checked = noRepeat;
+  noRepeatToggle.addEventListener('change', () => {
+    noRepeat = noRepeatToggle.checked;
+    localStorage.setItem('keytiles_norepeat', noRepeat ? '1' : '0');
+  });
+
+  function fitStage(){
+    const sideMargin = 16;
+    const availW = window.innerWidth - sideMargin * 2;
+    const otherH = h1El.offsetHeight + hudEl.offsetHeight + controlsEl.offsetHeight
+      + 14 * 3   // #app's flex gap, 3 gaps between 4 children (h1, hud, stageWrap, controls)
+      + 40       // #app's top+bottom padding
+      + 16;      // breathing room
+    const availH = window.innerHeight - otherH;
+    let scale = Math.min(1, availW / STAGE_W, availH / STAGE_H);
+    scale = Math.max(0.45, scale); // don't shrink into unusable territory
+    stage.style.transform = 'scale(' + scale + ')';
+    stageWrap.style.width = Math.round(STAGE_W * scale) + 'px';
+    stageWrap.style.height = Math.round(STAGE_H * scale) + 'px';
+  }
+
+  window.addEventListener('resize', fitStage);
+
+  rebuildKeyMap();
+  buildBoard();
+  buildKeybindRow();
+  updateColToggleUI();
+  loadBest();
+  fitStage();
+})();
+</script>
+</body>
+</html>
