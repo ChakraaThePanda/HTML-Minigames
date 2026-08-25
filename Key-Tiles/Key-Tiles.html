@@ -333,8 +333,8 @@
 
   const BASE_SPEED = 380;         // px/sec starting speed
   const ACCEL_PER_SEC = 14;       // px/sec, added to speed every second survived
-  const SPAWN_DENSITY = 2.3;      // avg tiles in flight per lane-cycle
-  const MIN_SPAWN_INTERVAL = 220; // ms floor so lanes don't jam up
+  const SPAWN_DENSITY = 3.2;      // avg tiles in flight per lane-cycle — single source of truth for both spawn timing and the tiles/sec stat
+  const MIN_SPAWN_INTERVAL = 160; // ms floor so lanes don't jam up
 
   function defaultKeys(n){ return n === 3 ? ['d','f','j'] : ['d','f','j','k']; }
   function colorsForCols(n){ return n === 3 ? ['blue','yellow','red'] : ['blue','blue','red','red']; }
@@ -449,16 +449,16 @@
     setTimeout(() => lbl.classList.remove(cls), 120);
   }
 
+  function currentSpawnInterval(){
+    const crossMs = (STAGE_H / speed) * 1000;
+    return Math.max(MIN_SPAWN_INTERVAL, crossMs / SPAWN_DENSITY);
+  }
+
   // How many tiles you actually need to click per second, i.e. the current spawn rate.
   function tilesPerSec(){ return 1000 / currentSpawnInterval(); }
 
   function updateHud(){
     speedOut.textContent = tilesPerSec().toFixed(2);
-  }
-
-  function currentSpawnInterval(){
-    const crossMs = (STAGE_H / speed) * 1000;
-    return Math.max(MIN_SPAWN_INTERVAL, crossMs / SPAWN_DENSITY);
   }
 
   function bestKey(){ return 'keytiles_best_tps_' + numCols; }
