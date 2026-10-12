@@ -334,7 +334,6 @@
   const BASE_SPEED = 380;         // px/sec starting speed
   const ACCEL_PER_SEC = 14;       // px/sec, added to speed every second survived
   const SPAWN_DENSITY = 3.2;      // avg tiles in flight per lane-cycle — single source of truth for both spawn timing and the tiles/sec stat
-  const MIN_SPAWN_INTERVAL = 160; // ms floor so lanes don't jam up
 
   function defaultKeys(n){ return n === 3 ? ['d','f','j'] : ['d','f','j','k']; }
   function colorsForCols(n){ return n === 3 ? ['blue','yellow','red'] : ['blue','blue','red','red']; }
@@ -451,7 +450,7 @@
 
   function currentSpawnInterval(){
     const crossMs = (STAGE_H / speed) * 1000;
-    return Math.max(MIN_SPAWN_INTERVAL, crossMs / SPAWN_DENSITY);
+    return crossMs / SPAWN_DENSITY;
   }
 
   // How many tiles you actually need to click per second, i.e. the current spawn rate.
