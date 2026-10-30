@@ -8,3 +8,9 @@ A collection of small standalone HTML mini projects/games, each self-contained i
 - [WTTG-K3RN3LC0MP1L3R](https://htmlpreview.github.io/?https://github.com/ChakraaThePanda/HTML-Minigames/blob/main/WTTG-K3RN3LC0MP1L3R/WTTG-K3RN3LC0MP1L3R.html) — practice minigame for Welcome to the Game's K3RN3LC0MP1L3R.
 
 Each subfolder has its own README with more details.
+
+---
+
+### Questions or feedback?
+
+Need help, found a bug, or have an idea? Join my Discord server, [Chakraa's Projects](https://discord.gg/bkk4nVXcjm), and post in this project's channel.
